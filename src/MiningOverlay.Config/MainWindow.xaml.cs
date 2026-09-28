@@ -160,10 +160,12 @@ public partial class MainWindow : Window
             return;
         }
 
-        var exePath = Path.Combine(AppContext.BaseDirectory, "MiningOverlay.Overlay.exe");
-        if (!File.Exists(exePath))
+        var exePath = FindOverlayExe();
+        if (exePath is null)
         {
-            TestResultText.Text = $"Could not find {exePath} — build/publish MiningOverlay.Overlay into this folder.";
+            TestResultText.Text =
+                "Could not find MiningOverlay.Overlay.exe. Build the whole solution " +
+                "(Build > Build Solution), or publish both apps into the same folder — see README.md.";
             return;
         }
 
@@ -173,5 +175,22 @@ public partial class MainWindow : Window
         _overlayProcess = Process.Start(new ProcessStartInfo(exePath) { UseShellExecute = false });
         ToggleOverlayButton.Content = "Stop overlay";
         OverlayStatusText.Text = "Running";
+    }
+
+    /// <summary>
+    /// Looks next to Config's own exe first (the layout after `dotnet publish` into a
+    /// shared folder), then falls back to Overlay's own per-project build output (the
+    /// layout while debugging each project separately in Visual Studio).
+    /// </summary>
+    private static string? FindOverlayExe()
+    {
+        var candidates = new[]
+        {
+            Path.Combine(AppContext.BaseDirectory, "MiningOverlay.Overlay.exe"),
+            Path.Combine(
+                AppContext.BaseDirectory.Replace("MiningOverlay.Config", "MiningOverlay.Overlay"),
+                "MiningOverlay.Overlay.exe"),
+        };
+        return candidates.FirstOrDefault(File.Exists);
     }
 }
