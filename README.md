@@ -56,12 +56,31 @@ All settings are in the **`config.ini`** file in the same folder as the overlay.
 |---|---|---|
 | `game_monitor` | `1` | Which monitor the game runs on |
 | `overlay_monitor` | `2` | Which monitor to show the overlay on (set to `1` if single monitor) |
-| `x / y / w / h` | see file | Position and size of the capture region on screen |
+| `ship` | `golem` | Selects a known-good capture region for your ship + resolution (see below) |
+| `x / y / w / h` | *(unset)* | Optional manual override of the capture region — only needed if there's no profile for your ship yet |
 | `history_size` | `5` | How many readings to keep on screen |
 | `max_rs` | `100000` | Readings above this value are ignored |
 | `debug` | `false` | Set to `true` to save debug images while running |
 
-The capture region is calibrated for **2560×1440** on the DRAKE Golem. If readings are wrong for your setup, run `debug_capture.py` to help tune the region values.
+### Ship profiles
+
+The RS number's position on your HUD is different for every ship, so the overlay looks up a known-good capture region from `profiles.py` based on the `ship` setting and your detected screen resolution.
+
+| Ship | Resolution | Status |
+|---|---|---|
+| DRAKE Golem | 2560×1440 | Verified |
+| Others | any | Not calibrated yet — falls back to the Golem region, which likely won't line up |
+
+If your ship/resolution isn't in the table yet, the overlay will silently fall back to the Golem's region (wrong for other ships) and print a warning if run from a terminal (`python main.py` instead of `launch.bat`).
+
+**To calibrate a new profile:**
+
+1. Get in your ship and start mining so the RS number is visible on your HUD.
+2. Run `python debug_capture.py --ship <yourship> --loop` — it re-captures every 3 seconds so you can test while moving, since the RS number can drift a little within its HUD bracket.
+3. Pass `--x --y --w --h` (fractions of screen size, 0.0–1.0) to try different regions until the digits read cleanly. Size the box generously enough to keep the number inside it even as it drifts — don't crop pixel-tight.
+4. Once it reads confidently, it prints a ready-to-paste profile line — add it to the `PROFILES` dict in `profiles.py` (and consider opening a PR so others with the same ship benefit).
+
+Alternatively, set `x/y/w/h` directly in `config.ini` as a manual override — that always takes priority over any profile.
 
 ---
 
@@ -93,7 +112,7 @@ The RS value in the HUD is scaled differently depending on the tool you use — 
 ## Troubleshooting
 
 **Nothing is detected / wrong resources showing:**
-The capture region needs to match where the RS number appears on your screen. Open `config.ini` and adjust the `x`, `y`, `w`, `h` values. Run `debug_capture.py` to see what the overlay is actually reading.
+The capture region needs to match where the RS number appears on your screen — this is very likely if you're not on the DRAKE Golem, since only that ship is calibrated so far. Run `python debug_capture.py --ship <yourship> --loop` to see what the overlay is actually reading and tune the region live. See [Ship profiles](#ship-profiles) above.
 
 **I only have one monitor:**
 Open `config.ini` and set `overlay_monitor = 1`.

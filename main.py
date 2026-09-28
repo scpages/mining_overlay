@@ -11,6 +11,7 @@ from PIL import Image
 from collections import deque
 
 from resources import analyze_rs
+from region import resolve_region
 
 # ── Tesseract path ────────────────────────────────────────────────────────────
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
@@ -27,11 +28,6 @@ _cfg.read(_cfg_path)
 
 GAME_MONITOR    = _cfg.getint("monitors", "game_monitor",    fallback=1)
 OVERLAY_MONITOR = _cfg.getint("monitors", "overlay_monitor", fallback=2)
-
-REGION_X = _cfg.getfloat("region", "x", fallback=0.459)
-REGION_Y = _cfg.getfloat("region", "y", fallback=0.367)
-REGION_W = _cfg.getfloat("region", "w", fallback=0.086)
-REGION_H = _cfg.getfloat("region", "h", fallback=0.042)
 
 POLL_INTERVAL = 0.1
 HISTORY_SIZE  = _cfg.getint  ("settings", "history_size", fallback=5)
@@ -240,11 +236,14 @@ class Overlay:
             monitors = sct.monitors
             idx = GAME_MONITOR if GAME_MONITOR < len(monitors) else 1
             m   = monitors[idx]
+            region_frac, desc, ok = resolve_region(_cfg, m)
+            if not ok:
+                print(f"[SC Mining Overlay] {desc}")
             region = {
-                "left":   int(m["width"]  * REGION_X) + m["left"],
-                "top":    int(m["height"] * REGION_Y) + m["top"],
-                "width":  int(m["width"]  * REGION_W),
-                "height": int(m["height"] * REGION_H),
+                "left":   int(m["width"]  * region_frac["x"]) + m["left"],
+                "top":    int(m["height"] * region_frac["y"]) + m["top"],
+                "width":  int(m["width"]  * region_frac["w"]),
+                "height": int(m["height"] * region_frac["h"]),
             }
 
             while self.running:
@@ -275,24 +274,53 @@ class Overlay:
 
 _debug_counter = 0
 
-def _ocr(img: Image.Image) -> str:
-    global _debug_counter
+# Fast path uses PSM 7 (single line) — good enough most of the time. When
+# that comes back empty/too short, fall back to trying a few other page
+# segmentation modes before giving up, since HUD fonts vary by ship.
+_PSM_FALLBACKS = (6, 8, 11, 13)
+
+
+def _ocr_digits(img: Image.Image, psm: int) -> str:
+    cfg  = f"--psm {psm} --oem 3 -c tessedit_char_whitelist=0123456789.,"
+    text = pytesseract.image_to_string(img, config=cfg).strip()
+    return re.sub(r"[^0-9]", "", text)
+
+
+_CROP_TOP    = 0.20   # fraction of region height trimmed off the top
+_CROP_BOTTOM = 0.62   # fraction of region height kept, measured from the top
+_CROP_RIGHT  = 0.95   # fraction of region width kept, measured from the left
+_THRESHOLD   = 140    # grayscale cutoff for black/white binarization
+
+
+def _preprocess(img: Image.Image) -> Image.Image:
+    """Crop to the RS text and binarize + upscale it so Tesseract reads it cleanly."""
     w, h = img.size
-    img  = img.crop((0, int(h * 0.20), int(w * 0.95), int(h * 0.62)))
+    img    = img.crop((0, int(h * _CROP_TOP), int(w * _CROP_RIGHT), int(h * _CROP_BOTTOM)))
     gray   = img.convert("L")
     gray   = gray.resize((gray.width * 4, gray.height * 4), Image.LANCZOS)
-    binary = gray.point(lambda p: 255 if p > 140 else 0)
+    binary = gray.point(lambda p: 255 if p > _THRESHOLD else 0)
     inv    = binary.point(lambda p: 0 if p else 255)
     padded = Image.new("L", (inv.width + 40, inv.height + 40), 255)
     padded.paste(inv, (20, 20))
+    return padded
+
+
+def _ocr(img: Image.Image) -> str:
+    global _debug_counter
+    padded = _preprocess(img)
     if DEBUG:
         import os
         os.makedirs("debug", exist_ok=True)
         padded.save(f"debug/{_debug_counter:04d}.png")
         _debug_counter += 1
-    cfg  = "--psm 7 --oem 3 -c tessedit_char_whitelist=0123456789.,"
-    text = pytesseract.image_to_string(padded, config=cfg).strip()
-    return re.sub(r"[^0-9]", "", text)
+
+    digits = _ocr_digits(padded, 7)
+    if len(digits) < 3:
+        for psm in _PSM_FALLBACKS:
+            digits = _ocr_digits(padded, psm)
+            if len(digits) >= 3:
+                break
+    return digits
 
 
 def _best_rs(digits: str) -> int | None:
