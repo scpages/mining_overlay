@@ -1,67 +1,80 @@
 # SC Mining Overlay
 
-A real-time Star Citizen mining assistant. It watches your screen while you mine, reads the Resource Signature (RS) value from your HUD automatically, and identifies what resource it is — including how many nodes are in the cluster. The last 5 unique confirmed readings are kept on screen so you can track what you've scanned.
+A real-time Star Citizen mining assistant. It watches your screen while you mine, reads the Resource Signature (RS) value from your HUD automatically, and identifies what resource it is — including how many nodes are in the cluster. The last few unique confirmed readings are kept on screen so you can track what you've scanned.
 
 Inspired by [rainbowramen.github.io/sc-mining-hud](https://rainbowramen.github.io/sc-mining-hud/) — this is a live overlay version that reads your HUD automatically so you never have to type anything.
 
-> **Work in progress** — this tool is still in development and not yet finished. It has only been tested on the **DRAKE Golem** ship. Other ships, resolutions, or HUD layouts may not work correctly. Feedback and bug reports are welcome.
+> **Work in progress** — calibrated for the DRAKE Golem and MISC Prospector at 2560×1440 so far. Other ships or resolutions need calibrating (see below). Feedback and bug reports are welcome.
 
 ---
 
-## Install — step by step
+## Project layout
 
-You only need to do this once.
-
-### 1. Download the overlay
-
-Click the green **Code** button on this page → **Download ZIP** → extract the folder somewhere (e.g. your Desktop).
-
-### 2. Install Python
-
-Go to [python.org/downloads](https://www.python.org/downloads/) and download the latest version.
-
-**Important:** on the first screen of the installer, tick **"Add Python to PATH"** before clicking Install.
-
-### 3. Install Tesseract OCR
-
-Go to [this link](https://github.com/UB-Mannheim/tesseract/wiki) and download the Windows installer.
-
-Run it and keep all the default options — just click Next through everything.
-
-### 4. Run the overlay
-
-Open the extracted folder and double-click **`launch.bat`**.
-
-It will automatically check that everything is installed and install any missing Python packages. Once all checks pass, the console disappears and the overlay appears on your screen.
+| Project | What it is |
+|---|---|
+| `src/MiningOverlay.Core` | Resource table, ship calibration profiles, OCR pipeline — no OS-specific code, runs on Linux and Windows |
+| `src/MiningOverlay.Windows` | Screen-capture helper shared by the two Windows apps below |
+| `src/MiningOverlay.Cli` | Command-line calibration/debug tool — runs anywhere, including Linux |
+| `src/MiningOverlay.Overlay` | The always-on-top HUD (Windows only) |
+| `src/MiningOverlay.Config` | Settings GUI: pick monitors/ship, test calibration, start/stop the overlay (Windows only) |
 
 ---
 
-## How to use it
+## Install
+
+1. Install the **.NET 8 SDK** (or just the runtime, if only running published binaries): https://dotnet.microsoft.com/download/dotnet/8.0
+2. Install **Tesseract-OCR**: https://github.com/UB-Mannheim/tesseract/wiki — make sure `tesseract.exe` is on your `PATH`, or leave it in the default install location (`C:\Program Files\Tesseract-OCR\`), which the app also checks automatically.
+
+## Running the apps
+
+Both GUI apps need to be **in the same folder** (`Config`'s "Start overlay" button looks
+for `MiningOverlay.Overlay.exe` next to itself):
+
+```
+dotnet publish src/MiningOverlay.Overlay -c Release -r win-x64 --self-contained false -o publish
+dotnet publish src/MiningOverlay.Config  -c Release -r win-x64 --self-contained false -o publish
+```
+
+Then run `publish/MiningOverlay.Config.exe` — set your monitors and ship there, hit
+**Test calibration** to confirm the region reads correctly without needing to relaunch,
+then **Start overlay**. Settings are saved to `%APPDATA%\MiningOverlay\config.json`.
+
+## How to use the overlay
 
 - Point your mining laser at a rock — when the RS value appears in your HUD, the overlay identifies the resource automatically
 - Only confirmed matches are shown — if the reading doesn't match any known resource exactly, it is ignored
-- The last 5 unique confirmed readings are shown, newest at the top, older ones faded
+- Recent unique confirmed readings are shown, newest at the top, older ones faded
 - If a reading could match more than one resource, all possibilities are listed on the same row
 - Click the **SHIP / FPS / GROUND** button to switch mining mode
-- Drag the overlay anywhere by clicking and holding it
+- Drag the overlay by its title bar
 - Close it with the **✕** button in the top right
 
----
+## Calibrating a new ship (works on Linux too)
 
-## Configuration
+```
+dotnet run --project src/MiningOverlay.Cli -- calibrate --image screenshot.png --ship prospector --x 0.465 --y 0.375 --w 0.05 --h 0.03
+dotnet run --project src/MiningOverlay.Cli -- calibrate --batch ./screenshots      --ship prospector --x 0.465 --y 0.375 --w 0.05 --h 0.03
+```
 
-All settings are in the **`config.ini`** file in the same folder as the overlay. It is created automatically the first time you run `launch.bat` — just open it in Notepad to edit.
+`--x/--y/--w/--h` are fractions (0.0–1.0) of the screenshot's own dimensions. Adjust
+them until the digits read cleanly and confidently across your screenshots — the RS
+number can drift a little within its HUD bracket, so size the box generously rather
+than pixel-tight. Once it's confident, the CLI prints a ready-to-paste entry for
+`src/MiningOverlay.Core/Calibration/ShipProfiles.cs`.
 
-| Setting | Default | What it does |
-|---|---|---|
-| `game_monitor` | `1` | Which monitor the game runs on |
-| `overlay_monitor` | `2` | Which monitor to show the overlay on (set to `1` if single monitor) |
-| `x / y / w / h` | see file | Position and size of the capture region on screen |
-| `history_size` | `5` | How many readings to keep on screen |
-| `max_rs` | `100000` | Readings above this value are ignored |
-| `debug` | `false` | Set to `true` to save debug images while running |
+This is the same OCR pipeline the overlay uses, so a screenshot-based calibration
+run means exactly what it says — no game or Windows machine required.
 
-The capture region is calibrated for **2560×1440** on the DRAKE Golem. If readings are wrong for your setup, run `debug_capture.py` to help tune the region values.
+## Building
+
+```
+dotnet build                          # whole solution
+dotnet build src/MiningOverlay.Cli    # just Core + Cli (works on Linux)
+```
+
+`Overlay` and `Config` target `net8.0-windows` and need the Windows Desktop workload —
+on Linux, `EnableWindowsTargeting` is set so they still build (useful for catching
+reference/compile errors early), but they can't actually run outside Windows.
 
 ---
 
@@ -70,10 +83,10 @@ The capture region is calibrated for **2560×1440** on the DRAKE Golem. If readi
 Switch modes by clicking the button in the top-left of the overlay.
 
 | Mode   | Use for                         |
-|--------|---------------------------------|
+|--------|----------------------------------|
 | SHIP   | Ship mining (Prospector, MOLE)  |
-| FPS    | FPS hand tool mining            |
-| GROUND | Ground vehicle mining           |
+| FPS    | FPS hand tool mining             |
+| GROUND | Ground vehicle mining            |
 
 The RS value in the HUD is scaled differently depending on the tool you use — this setting makes sure the calculation is correct.
 
@@ -82,24 +95,24 @@ The RS value in the HUD is scaled differently depending on the tool you use — 
 ## Tier guide
 
 | Tier | Colour | Examples                        |
-|------|--------|---------------------------------|
-| S    | Gold   | Quantainium, Bexalite           |
-| A    | Green  | Gold, Taranite, Laranite, Beryl |
-| B    | Orange | Borase, Titanium, Tungsten      |
-| C    | Grey   | Iron, Copper, Quartz, Ice       |
+|------|--------|----------------------------------|
+| S    | Gold   | Quantainium, Bexalite            |
+| A    | Green  | Gold, Taranite, Laranite, Beryl  |
+| B    | Orange | Borase, Titanium, Tungsten       |
+| C    | Grey   | Iron, Copper, Quartz, Ice        |
 
 ---
 
 ## Troubleshooting
 
 **Nothing is detected / wrong resources showing:**
-The capture region needs to match where the RS number appears on your screen. Open `config.ini` and adjust the `x`, `y`, `w`, `h` values. Run `debug_capture.py` to see what the overlay is actually reading.
+The capture region needs to match where the RS number appears on your screen — likely if your ship/resolution isn't calibrated yet (see the table in `src/MiningOverlay.Core/Calibration/ShipProfiles.cs`). Use `MiningOverlay.Cli calibrate` to find a working region.
 
 **I only have one monitor:**
-Open `config.ini` and set `overlay_monitor = 1`.
+In `Config`, set the overlay monitor to `1`.
 
 **The overlay appears on the wrong monitor:**
-Open `config.ini` and set `game_monitor` and `overlay_monitor` to the correct numbers (1 = primary monitor).
+In `Config`, set the game/overlay monitor to the correct ones (1 = primary monitor).
 
 ---
 
