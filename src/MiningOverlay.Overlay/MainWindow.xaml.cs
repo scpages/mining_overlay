@@ -35,6 +35,7 @@ public partial class MainWindow : Window
     private readonly List<RowWidgets> _rows = new();
     private int _modeIndex;
     private CaptureLoop? _capture;
+    private string? _statusMessage;
 
     public MainWindow()
     {
@@ -66,7 +67,15 @@ public partial class MainWindow : Window
                 Redraw();
         });
 
-    private void OnWarning(string message) => OverlayLog.Write(message);
+    private void OnWarning(string message) =>
+        Dispatcher.Invoke(() =>
+        {
+            OverlayLog.Write(message); // full detail, including the calibrate-it hint
+            _statusMessage = message.Contains("no calibrated profile", StringComparison.OrdinalIgnoreCase)
+                ? "Ship not calibrated — see overlay.log"
+                : message;
+            Redraw();
+        });
 
     private void PlaceWindow()
     {
@@ -168,7 +177,7 @@ public partial class MainWindow : Window
             }
             else
             {
-                ClearRow(_rows[i], i == 0 ? "Waiting…" : "");
+                ClearRow(_rows[i], i == 0 ? (_statusMessage ?? "Waiting…") : "");
             }
         }
     }

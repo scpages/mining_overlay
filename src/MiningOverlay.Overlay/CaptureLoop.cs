@@ -49,8 +49,14 @@ public sealed class CaptureLoop
         {
             var monitor = ScreenCapture.GetMonitor(_settings.GameMonitor);
             var resolution = RegionResolver.Resolve(_settings.ManualRegion, _settings.Ship, monitor.Bounds.Width, monitor.Bounds.Height);
+
             if (!resolution.Ok)
+            {
+                // No calibrated region for this ship — refuse to guess with another
+                // ship's region and quietly show "confident" garbage. Report and stop.
                 _onWarning?.Invoke(resolution.Description);
+                return;
+            }
 
             var r = resolution.Region;
             var region = new Rectangle(

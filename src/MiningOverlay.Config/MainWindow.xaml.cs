@@ -45,7 +45,7 @@ public partial class MainWindow : Window
 
     private void PopulateShipBox()
     {
-        var ships = ShipProfiles.All.Keys.Select(k => k.Ship).Distinct().OrderBy(s => s).ToList();
+        var ships = ShipProfiles.KnownShips.ToList();
         if (!ships.Contains(_settings.Ship, StringComparer.OrdinalIgnoreCase))
             ships.Add(_settings.Ship);
         foreach (var ship in ships)
@@ -117,6 +117,14 @@ public partial class MainWindow : Window
         {
             var monitor = ScreenCapture.GetMonitor(settings.GameMonitor);
             var resolution = RegionResolver.Resolve(settings.ManualRegion, settings.Ship, monitor.Bounds.Width, monitor.Bounds.Height);
+
+            if (!resolution.Ok)
+            {
+                TestResultText.Text = resolution.Description +
+                    "\n\nNo test run — refusing to guess with another ship's region. " +
+                    "Use the manual override above, or calibrate one with MiningOverlay.Cli.";
+                return;
+            }
 
             var r = resolution.Region;
             var region = new System.Drawing.Rectangle(

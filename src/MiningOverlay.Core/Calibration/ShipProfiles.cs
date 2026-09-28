@@ -20,4 +20,11 @@ public static class ShipProfiles
             [("golem", "2560x1440")]      = new Region(0.459, 0.367, 0.086, 0.042),
             [("prospector", "2560x1440")] = new Region(0.465, 0.375, 0.05, 0.03),
         };
+
+    /// <summary>
+    /// Ships selectable in the GUI, including ones with no calibrated profile yet
+    /// (e.g. "mole") — those intentionally fail via RegionResolver rather than silently
+    /// guessing with another ship's region.
+    /// </summary>
+    public static readonly IReadOnlyList<string> KnownShips = new[] { "golem", "prospector", "mole" };
 }
