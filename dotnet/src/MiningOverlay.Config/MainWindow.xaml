@@ -1,0 +1,95 @@
+<Window x:Class="MiningOverlay.Config.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="SC Mining Overlay — Settings"
+        Width="420" SizeToContent="Height" ResizeMode="CanMinimize"
+        WindowStartupLocation="CenterScreen"
+        Background="#0a0a18">
+    <Window.Resources>
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#ccc" />
+            <Setter Property="FontFamily" Value="Segoe UI" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Margin" Value="0,0,0,2" />
+        </Style>
+        <Style TargetType="ComboBox">
+            <Setter Property="Margin" Value="0,0,0,10" />
+        </Style>
+        <Style TargetType="TextBox">
+            <Setter Property="Margin" Value="0,0,0,10" />
+        </Style>
+        <Style TargetType="CheckBox">
+            <Setter Property="Foreground" Value="#ccc" />
+            <Setter Property="Margin" Value="0,0,0,10" />
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="Padding" Value="10,4" />
+            <Setter Property="Margin" Value="0,0,8,0" />
+        </Style>
+    </Window.Resources>
+
+    <StackPanel Margin="16">
+        <TextBlock Text="Game monitor" />
+        <ComboBox x:Name="GameMonitorBox" />
+
+        <TextBlock Text="Overlay monitor" />
+        <ComboBox x:Name="OverlayMonitorBox" />
+
+        <TextBlock Text="Ship" />
+        <ComboBox x:Name="ShipBox" IsEditable="True" />
+
+        <TextBlock Text="Mining mode" />
+        <ComboBox x:Name="ModeBox">
+            <ComboBoxItem Content="ship" />
+            <ComboBoxItem Content="fps" />
+            <ComboBoxItem Content="ground" />
+        </ComboBox>
+
+        <CheckBox x:Name="ManualRegionCheck" Content="Manual capture region override"
+                  Checked="ManualRegionCheck_Changed" Unchecked="ManualRegionCheck_Changed" />
+        <Grid x:Name="ManualRegionGrid" IsEnabled="False">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0" Margin="0,0,4,0">
+                <TextBlock Text="x" /><TextBox x:Name="RegionXBox" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Margin="0,0,4,0">
+                <TextBlock Text="y" /><TextBox x:Name="RegionYBox" />
+            </StackPanel>
+            <StackPanel Grid.Column="2" Margin="0,0,4,0">
+                <TextBlock Text="w" /><TextBox x:Name="RegionWBox" />
+            </StackPanel>
+            <StackPanel Grid.Column="3">
+                <TextBlock Text="h" /><TextBox x:Name="RegionHBox" />
+            </StackPanel>
+        </Grid>
+
+        <TextBlock Text="History size" />
+        <TextBox x:Name="HistorySizeBox" />
+
+        <TextBlock Text="Max RS (ignore readings above this)" />
+        <TextBox x:Name="MaxRsBox" />
+
+        <CheckBox x:Name="DebugCheck" Content="Save debug images while running" />
+
+        <StackPanel Orientation="Horizontal" Margin="0,4,0,10">
+            <Button Content="Test calibration" Click="TestCalibration_Click" />
+            <Button Content="Save settings" Click="SaveSettings_Click" />
+        </StackPanel>
+        <TextBlock x:Name="TestResultText" TextWrapping="Wrap" Margin="0,0,0,14" FontFamily="Consolas" FontSize="11" />
+
+        <Border Background="#12122a" Padding="10">
+            <StackPanel>
+                <TextBlock Text="Overlay" FontWeight="Bold" Margin="0,0,0,6" />
+                <StackPanel Orientation="Horizontal">
+                    <Button x:Name="ToggleOverlayButton" Content="Start overlay" Click="ToggleOverlay_Click" />
+                    <TextBlock x:Name="OverlayStatusText" Text="Stopped" VerticalAlignment="Center" Foreground="#888" />
+                </StackPanel>
+            </StackPanel>
+        </Border>
+    </StackPanel>
+</Window>

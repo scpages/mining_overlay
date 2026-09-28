@@ -1,0 +1,55 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{8E652CC8-E56F-4F2C-A279-55439BF9C714}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MiningOverlay.Core", "src\MiningOverlay.Core\MiningOverlay.Core.csproj", "{2C11729B-5976-47FF-B759-62F35FD7135A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MiningOverlay.Cli", "src\MiningOverlay.Cli\MiningOverlay.Cli.csproj", "{3F724BB3-06D7-4C41-B417-E6A854784508}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MiningOverlay.Overlay", "src\MiningOverlay.Overlay\MiningOverlay.Overlay.csproj", "{A9E81551-54F9-4924-AFD4-61F43F390FC5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MiningOverlay.Windows", "src\MiningOverlay.Windows\MiningOverlay.Windows.csproj", "{811B4E0A-DB42-4C22-B99A-F4F011A0654F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MiningOverlay.Config", "src\MiningOverlay.Config\MiningOverlay.Config.csproj", "{5EA02AE4-99D4-4C11-A2CC-61C71D2EC4C1}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2C11729B-5976-47FF-B759-62F35FD7135A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2C11729B-5976-47FF-B759-62F35FD7135A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2C11729B-5976-47FF-B759-62F35FD7135A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2C11729B-5976-47FF-B759-62F35FD7135A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3F724BB3-06D7-4C41-B417-E6A854784508}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3F724BB3-06D7-4C41-B417-E6A854784508}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3F724BB3-06D7-4C41-B417-E6A854784508}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3F724BB3-06D7-4C41-B417-E6A854784508}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A9E81551-54F9-4924-AFD4-61F43F390FC5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A9E81551-54F9-4924-AFD4-61F43F390FC5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A9E81551-54F9-4924-AFD4-61F43F390FC5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A9E81551-54F9-4924-AFD4-61F43F390FC5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{811B4E0A-DB42-4C22-B99A-F4F011A0654F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{811B4E0A-DB42-4C22-B99A-F4F011A0654F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{811B4E0A-DB42-4C22-B99A-F4F011A0654F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{811B4E0A-DB42-4C22-B99A-F4F011A0654F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5EA02AE4-99D4-4C11-A2CC-61C71D2EC4C1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5EA02AE4-99D4-4C11-A2CC-61C71D2EC4C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5EA02AE4-99D4-4C11-A2CC-61C71D2EC4C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5EA02AE4-99D4-4C11-A2CC-61C71D2EC4C1}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{2C11729B-5976-47FF-B759-62F35FD7135A} = {8E652CC8-E56F-4F2C-A279-55439BF9C714}
+		{3F724BB3-06D7-4C41-B417-E6A854784508} = {8E652CC8-E56F-4F2C-A279-55439BF9C714}
+		{A9E81551-54F9-4924-AFD4-61F43F390FC5} = {8E652CC8-E56F-4F2C-A279-55439BF9C714}
+		{811B4E0A-DB42-4C22-B99A-F4F011A0654F} = {8E652CC8-E56F-4F2C-A279-55439BF9C714}
+		{5EA02AE4-99D4-4C11-A2CC-61C71D2EC4C1} = {8E652CC8-E56F-4F2C-A279-55439BF9C714}
+	EndGlobalSection
+EndGlobal
