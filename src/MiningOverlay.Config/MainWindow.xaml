@@ -36,7 +36,7 @@
         <ComboBox x:Name="OverlayMonitorBox" />
 
         <TextBlock Text="Ship" />
-        <ComboBox x:Name="ShipBox" IsEditable="True" />
+        <ComboBox x:Name="ShipBox" />
 
         <TextBlock Text="Mining mode" />
         <ComboBox x:Name="ModeBox">

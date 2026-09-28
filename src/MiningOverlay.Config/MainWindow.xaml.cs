@@ -56,7 +56,7 @@ public partial class MainWindow : Window
     {
         GameMonitorBox.SelectedIndex = Math.Clamp(_settings.GameMonitor - 1, 0, Math.Max(0, GameMonitorBox.Items.Count - 1));
         OverlayMonitorBox.SelectedIndex = Math.Clamp(_settings.OverlayMonitor - 1, 0, Math.Max(0, OverlayMonitorBox.Items.Count - 1));
-        ShipBox.Text = _settings.Ship;
+        ShipBox.SelectedItem = _settings.Ship;
         ModeBox.SelectedIndex = Math.Max(0, Array.IndexOf(Modes, _settings.Mode));
 
         if (_settings.ManualRegion is { } r)
