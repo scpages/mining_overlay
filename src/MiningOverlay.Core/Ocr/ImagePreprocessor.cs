@@ -9,15 +9,15 @@ namespace MiningOverlay.Core.Ocr;
 /// </summary>
 public static class ImagePreprocessor
 {
-    public const double CropTop    = 0.20; // fraction of region height trimmed off the top
-    public const double CropBottom = 0.62; // fraction of region height kept, measured from the top
-    public const double CropRight  = 0.95; // fraction of region width kept, measured from the left
-    public const byte   Threshold  = 140;  // grayscale cutoff for black/white binarization
+    public const double CropTop      = 0.20; // fraction of region height trimmed off the top
+    public const double CropBottom   = 0.62; // fraction of region height kept, measured from the top
+    public const double CropRight    = 0.95; // fraction of region width kept, measured from the left
+    public const byte   DefaultThreshold = 140; // grayscale cutoff for black/white binarization
 
     private const int Scale = 4;
     private const int Pad   = 20;
 
-    public static SKBitmap Preprocess(SKBitmap source)
+    public static SKBitmap Preprocess(SKBitmap source, byte threshold = DefaultThreshold)
     {
         int w = source.Width, h = source.Height;
         int cropTopY = (int)(h * CropTop);
@@ -55,7 +55,7 @@ public static class ImagePreprocessor
                 {
                     byte b = srcRow[x * 4], g = srcRow[x * 4 + 1], r = srcRow[x * 4 + 2];
                     byte gray = (byte)((r * 299 + g * 587 + b * 114) / 1000);
-                    dstRow[x] = gray > Threshold ? (byte)0 : (byte)255;
+                    dstRow[x] = gray > threshold ? (byte)0 : (byte)255;
                 }
             }
         }

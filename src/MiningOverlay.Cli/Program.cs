@@ -68,6 +68,16 @@ static bool RunOne(string path, CliOptions o)
     using (var canvas = new SKCanvas(cropped))
         canvas.DrawBitmap(full, px, new SKRect(0, 0, px.Width, px.Height), new SKSamplingOptions());
 
+    if (o.DumpPreprocessedDir is not null)
+    {
+        Directory.CreateDirectory(o.DumpPreprocessedDir);
+        using var preprocessed = ImagePreprocessor.Preprocess(cropped);
+        var dumpPath = Path.Combine(o.DumpPreprocessedDir, Path.GetFileNameWithoutExtension(path) + ".png");
+        using var fs = File.OpenWrite(dumpPath);
+        using var data = preprocessed.Encode(SKEncodedImageFormat.Png, 100);
+        data.SaveTo(fs);
+    }
+
     var result = RsOcrReader.Read(cropped, o.Mode);
 
     Console.WriteLine($"{Path.GetFileName(path)}  [{full.Width}x{full.Height}]");
@@ -99,7 +109,7 @@ static bool IsImage(string path) =>
 
 static CliOptions? ParseOptions(string[] args)
 {
-    string? image = null, batch = null, ship = null, mode = "ship";
+    string? image = null, batch = null, ship = null, mode = "ship", dumpDir = null;
     double? x = null, y = null, w = null, h = null;
 
     for (int i = 0; i < args.Length; i++)
@@ -117,6 +127,7 @@ static CliOptions? ParseOptions(string[] args)
                 case "--y": y = double.Parse(Next()); break;
                 case "--w": w = double.Parse(Next()); break;
                 case "--h": h = double.Parse(Next()); break;
+                case "--dump-preprocessed": dumpDir = Next(); break;
                 default:
                     Console.Error.WriteLine($"Unknown option: {args[i]}");
                     return null;
@@ -143,21 +154,24 @@ static CliOptions? ParseOptions(string[] args)
     }
 
     Region? manual = x is not null ? new Region(x.Value, y!.Value, w!.Value, h!.Value) : null;
-    return new CliOptions(image, batch, ship ?? "golem", manual, mode ?? "ship");
+    return new CliOptions(image, batch, ship ?? "golem", manual, mode ?? "ship", dumpDir);
 }
 
 static void PrintUsage()
 {
     Console.Error.WriteLine("""
-        miningoverlay-cli calibrate --image <path> [--ship <name>] [--x F --y F --w F --h F] [--mode ship|fps|ground]
-        miningoverlay-cli calibrate --batch <dir>  [--ship <name>] [--x F --y F --w F --h F] [--mode ship|fps|ground]
+        miningoverlay-cli calibrate --image <path> [--ship <name>] [--x F --y F --w F --h F] [--mode ship|fps|ground] [--dump-preprocessed <dir>]
+        miningoverlay-cli calibrate --batch <dir>  [--ship <name>] [--x F --y F --w F --h F] [--mode ship|fps|ground] [--dump-preprocessed <dir>]
 
         Runs a screenshot (or every image in a directory) through the exact same OCR
         pipeline the overlay uses, so you can find a working capture region without
         needing the game running. x/y/w/h are fractions (0.0-1.0) of the screenshot's
         own dimensions. Once it reads confidently, a ready-to-paste ShipProfiles.cs
         entry is printed.
+
+        --dump-preprocessed saves what Tesseract actually sees (post crop/threshold/
+        upscale) as a PNG per image — useful for spotting misread digits by eye.
         """);
 }
 
-internal sealed record CliOptions(string? ImagePath, string? BatchDir, string Ship, Region? Manual, string Mode);
+internal sealed record CliOptions(string? ImagePath, string? BatchDir, string Ship, Region? Manual, string Mode, string? DumpPreprocessedDir);
