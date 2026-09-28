@@ -42,34 +42,45 @@ public sealed class CaptureLoop
 
     private void Run()
     {
-        var monitor = ScreenCapture.GetMonitor(_settings.GameMonitor);
-        var resolution = RegionResolver.Resolve(_settings.ManualRegion, _settings.Ship, monitor.Bounds.Width, monitor.Bounds.Height);
-        if (!resolution.Ok)
-            _onWarning?.Invoke(resolution.Description);
-
-        var r = resolution.Region;
-        var region = new Rectangle(
-            monitor.Bounds.X + (int)(monitor.Bounds.Width * r.X),
-            monitor.Bounds.Y + (int)(monitor.Bounds.Height * r.Y),
-            (int)(monitor.Bounds.Width * r.W),
-            (int)(monitor.Bounds.Height * r.H));
-
-        while (_running)
+        // Everything here — including one-time setup — must not let an exception
+        // escape: an unhandled exception on this background thread would otherwise
+        // take the whole process down instead of just failing gracefully.
+        try
         {
-            try
-            {
-                using var capture = ScreenCapture.CaptureRegion(region);
-                var result = RsOcrReader.Read(capture, _getMode(), _settings.MaxRs);
-                if (result.Rs is int rs)
-                    _onReading(rs);
-            }
-            catch
-            {
-                // Transient capture/OCR failures are expected occasionally (e.g. game
-                // window not focused) — keep polling rather than crashing the loop.
-            }
+            var monitor = ScreenCapture.GetMonitor(_settings.GameMonitor);
+            var resolution = RegionResolver.Resolve(_settings.ManualRegion, _settings.Ship, monitor.Bounds.Width, monitor.Bounds.Height);
+            if (!resolution.Ok)
+                _onWarning?.Invoke(resolution.Description);
 
-            Thread.Sleep(PollInterval);
+            var r = resolution.Region;
+            var region = new Rectangle(
+                monitor.Bounds.X + (int)(monitor.Bounds.Width * r.X),
+                monitor.Bounds.Y + (int)(monitor.Bounds.Height * r.Y),
+                (int)(monitor.Bounds.Width * r.W),
+                (int)(monitor.Bounds.Height * r.H));
+
+            while (_running)
+            {
+                try
+                {
+                    using var capture = ScreenCapture.CaptureRegion(region);
+                    var result = RsOcrReader.Read(capture, _getMode(), _settings.MaxRs);
+                    if (result.Rs is int rs)
+                        _onReading(rs);
+                }
+                catch (Exception ex)
+                {
+                    // Transient capture/OCR failures are expected occasionally (e.g. game
+                    // window not focused) — keep polling rather than crashing the loop.
+                    _onWarning?.Invoke($"capture/OCR error (will keep retrying): {ex.Message}");
+                }
+
+                Thread.Sleep(PollInterval);
+            }
+        }
+        catch (Exception ex)
+        {
+            _onWarning?.Invoke($"capture loop stopped unexpectedly: {ex}");
         }
     }
 }

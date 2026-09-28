@@ -66,8 +66,7 @@ public partial class MainWindow : Window
                 Redraw();
         });
 
-    private void OnWarning(string message) =>
-        System.Diagnostics.Debug.WriteLine($"[SC Mining Overlay] {message}");
+    private void OnWarning(string message) => OverlayLog.Write(message);
 
     private void PlaceWindow()
     {
