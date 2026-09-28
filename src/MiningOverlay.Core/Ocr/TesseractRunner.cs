@@ -76,6 +76,7 @@ public static class TesseractRunner
                     RedirectStandardOutput = true,
                     RedirectStandardError  = true,
                     UseShellExecute = false,
+                    CreateNoWindow = true,
                 };
 
                 using var proc = Process.Start(psi)
